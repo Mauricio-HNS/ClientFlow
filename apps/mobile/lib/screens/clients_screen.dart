@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/clientflow_api.dart';
 import '../models/client.dart';
+import '../screens/client_detail_screen.dart';
 import '../theme/clientflow_palette.dart';
 
 class ClientsScreen extends StatefulWidget {
@@ -95,47 +96,57 @@ class _ClientCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: ClientFlowPalette.primary.withOpacity(0.35),
-              child: Text(
-                client.name.isNotEmpty ? client.name[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: ClientFlowPalette.deep,
-                  fontWeight: FontWeight.bold,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ClientDetailScreen(client: client),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: ClientFlowPalette.primary.withOpacity(0.35),
+                child: Text(
+                  client.name.isNotEmpty ? client.name[0].toUpperCase() : '?',
+                  style: const TextStyle(
+                    color: ClientFlowPalette.deep,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    client.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: ClientFlowPalette.deepest,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      client.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: ClientFlowPalette.deepest,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    client.phone.isNotEmpty ? client.phone : 'Sem telefone',
-                    style: const TextStyle(color: ClientFlowPalette.muted),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      client.phone.isNotEmpty ? client.phone : 'Sem telefone',
+                      style: const TextStyle(color: ClientFlowPalette.muted),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: ClientFlowPalette.muted,
-            ),
-          ],
+              const Icon(
+                Icons.chevron_right,
+                color: ClientFlowPalette.muted,
+              ),
+            ],
+          ),
         ),
       ),
     );

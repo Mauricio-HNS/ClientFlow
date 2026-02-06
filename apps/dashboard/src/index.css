@@ -3,8 +3,14 @@
   font-family: "Manrope", system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #0f172a;
-  background: radial-gradient(circle at top, #eef2ff 0%, #ffffff 55%, #f8fafc 100%);
+  --green-1: #a5ec60;
+  --green-2: #419310;
+  --green-3: #1c621b;
+  --teal-1: #487070;
+  --teal-2: #18333d;
+  --teal-3: #0b1e26;
+  color: var(--teal-3);
+  background: radial-gradient(circle at top, #cdef9a 0%, #f4f7f6 45%, #e6efef 100%);
 }
 
 * {
@@ -30,7 +36,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 0.75rem;
-  color: #6366f1;
+  color: var(--green-2);
   margin-bottom: 0.75rem;
 }
 
@@ -40,7 +46,7 @@ h1 {
 }
 
 .subtitle {
-  color: #475569;
+  color: var(--teal-1);
   font-size: 1.05rem;
 }
 
@@ -54,8 +60,8 @@ h1 {
   background: #ffffff;
   border-radius: 18px;
   padding: 1.5rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(24, 51, 61, 0.12);
+  box-shadow: 0 12px 30px rgba(11, 30, 38, 0.12);
 }
 
 .card h2 {
@@ -64,7 +70,7 @@ h1 {
 }
 
 .card p {
-  color: #64748b;
+  color: var(--teal-1);
 }
 
 @media (max-width: 700px) {

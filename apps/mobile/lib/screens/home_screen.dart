@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/clientflow_api.dart';
+import '../theme/clientflow_palette.dart';
 import '../models/appointment.dart';
 import '../models/client.dart';
 
@@ -366,16 +367,4 @@ String _formatTime(DateTime dateTime) {
   final hour = dateTime.hour.toString().padLeft(2, '0');
   final minute = dateTime.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
-}
-
-class ClientFlowPalette {
-  static const primary = Color(0xFFA5EC60);
-  static const accent = Color(0xFF419310);
-  static const dark = Color(0xFF1C621B);
-  static const muted = Color(0xFF487070);
-  static const deep = Color(0xFF18333D);
-  static const deepest = Color(0xFF0B1E26);
-  static const background = Color(0xFFF4F7F6);
-  static const surface = Color(0xFFFFFFFF);
-  static const surfaceBorder = Color(0xFFE0E8E7);
 }

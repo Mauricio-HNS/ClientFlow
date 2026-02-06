@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/clientflow_api.dart';
+import '../demo/demo_data.dart';
 import '../models/client.dart';
 import '../screens/client_detail_screen.dart';
 import '../theme/clientflow_palette.dart';
@@ -16,16 +17,36 @@ class ClientsScreen extends StatefulWidget {
 
 class _ClientsScreenState extends State<ClientsScreen> {
   late Future<List<Client>> _clients;
+  bool _isDemo = false;
 
   @override
   void initState() {
     super.initState();
-    _clients = widget.api.fetchClients();
+    _clients = _loadClients();
+  }
+
+  Future<List<Client>> _loadClients() async {
+    try {
+      final clients = await widget.api.fetchClients();
+      if (mounted && _isDemo) {
+        setState(() {
+          _isDemo = false;
+        });
+      }
+      return clients;
+    } catch (_) {
+      if (mounted && !_isDemo) {
+        setState(() {
+          _isDemo = true;
+        });
+      }
+      return demoClients();
+    }
   }
 
   Future<void> _refresh() async {
     setState(() {
-      _clients = widget.api.fetchClients();
+      _clients = _loadClients();
     });
     await _clients;
   }
@@ -71,6 +92,15 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final client = clients[index];
+                  if (index == 0 && _isDemo) {
+                    return Column(
+                      children: [
+                        const _DemoBanner(),
+                        const SizedBox(height: 12),
+                        _ClientCard(client: client),
+                      ],
+                    );
+                  }
                   return _ClientCard(client: client);
                 },
               ),
@@ -216,6 +246,34 @@ class _ErrorState extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DemoBanner extends StatelessWidget {
+  const _DemoBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ClientFlowPalette.primary.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ClientFlowPalette.primary.withOpacity(0.4)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.auto_awesome, color: ClientFlowPalette.deep),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Modo demo ativo. Mostrando dados locais enquanto a API nao responde.',
+              style: TextStyle(color: ClientFlowPalette.deep),
+            ),
+          ),
+        ],
       ),
     );
   }

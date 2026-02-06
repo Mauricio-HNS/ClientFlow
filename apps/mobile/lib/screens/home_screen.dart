@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/clientflow_api.dart';
+import '../demo/demo_data.dart';
 import '../theme/clientflow_palette.dart';
 import '../models/appointment.dart';
 import '../models/client.dart';
@@ -16,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<DashboardData> _dashboard;
+  bool _isDemo = false;
 
   @override
   void initState() {
@@ -24,9 +26,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<DashboardData> _loadDashboard() async {
-    final clients = await widget.api.fetchClients();
-    final appointments = await widget.api.fetchAppointments();
-    return DashboardData(clients: clients, appointments: appointments);
+    try {
+      final clients = await widget.api.fetchClients();
+      final appointments = await widget.api.fetchAppointments();
+      if (mounted && _isDemo) {
+        setState(() {
+          _isDemo = false;
+        });
+      }
+      return DashboardData(clients: clients, appointments: appointments);
+    } catch (_) {
+      if (mounted && !_isDemo) {
+        setState(() {
+          _isDemo = true;
+        });
+      }
+      return DashboardData(
+        clients: demoClients(),
+        appointments: demoAppointments(),
+      );
+    }
   }
 
   @override
@@ -69,6 +88,10 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 const _HeroHeader(),
+                if (_isDemo) ...[
+                  const SizedBox(height: 16),
+                  const _DemoBanner(),
+                ],
                 const SizedBox(height: 24),
                 _QuickStats(
                   clientsCount: data.clients.length,
@@ -145,6 +168,34 @@ class _HeroHeader extends StatelessWidget {
             'Agenda inteligente, historico completo e follow-ups automaticos.',
             style: TextStyle(
               color: ClientFlowPalette.deep,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DemoBanner extends StatelessWidget {
+  const _DemoBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ClientFlowPalette.primary.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ClientFlowPalette.primary.withOpacity(0.4)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.auto_awesome, color: ClientFlowPalette.deep),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Modo demo ativo. Mostrando dados locais enquanto a API nao responde.',
+              style: TextStyle(color: ClientFlowPalette.deep),
             ),
           ),
         ],

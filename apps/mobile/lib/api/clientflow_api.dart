@@ -22,6 +22,31 @@ class ClientFlowApi {
         .toList();
   }
 
+  Future<Client> createClient({
+    required String name,
+    String? phone,
+    String? email,
+    String? notes,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/clients'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'name': name,
+        'phone': phone ?? '',
+        'email': email ?? '',
+        'notes': notes ?? '',
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Erro ao criar cliente (${response.statusCode}).');
+    }
+
+    final data = json.decode(response.body) as Map<String, dynamic>;
+    return Client.fromJson(data);
+  }
+
   Future<List<Appointment>> fetchAppointments() async {
     final response = await http.get(Uri.parse('$baseUrl/appointments'));
     if (response.statusCode != 200) {

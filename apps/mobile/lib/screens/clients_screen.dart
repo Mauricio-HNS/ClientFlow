@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/clientflow_api.dart';
 import '../demo/demo_data.dart';
+import '../screens/client_form_screen.dart';
 import '../models/client.dart';
 import '../screens/client_detail_screen.dart';
 import '../theme/clientflow_palette.dart';
@@ -109,7 +110,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () async {
+          final created = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => ClientFormScreen(
+                api: widget.api,
+                isDemo: _isDemo,
+              ),
+            ),
+          );
+          if (created == true) {
+            await _refresh();
+          }
+        },
         backgroundColor: ClientFlowPalette.accent,
         foregroundColor: Colors.white,
         child: const Icon(Icons.person_add_alt_1),

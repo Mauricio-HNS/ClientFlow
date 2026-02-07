@@ -5,6 +5,7 @@ import 'api/chat_hub.dart';
 import 'screens/clients_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/auth_screen.dart';
 import 'theme/clientflow_palette.dart';
 
 void main() {
@@ -146,10 +147,20 @@ class SplashGate extends StatefulWidget {
 
 class _SplashGateState extends State<SplashGate> {
   bool _ready = false;
+  bool _authenticated = false;
 
   @override
   Widget build(BuildContext context) {
     if (_ready) {
+      if (!_authenticated) {
+        return AuthScreen(
+          onAuthenticated: () {
+            setState(() {
+              _authenticated = true;
+            });
+          },
+        );
+      }
       return HomeShell(api: widget.api);
     }
 

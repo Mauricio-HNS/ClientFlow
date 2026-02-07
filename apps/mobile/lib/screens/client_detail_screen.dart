@@ -114,13 +114,13 @@ class _Header extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: ClientFlowPalette.primary.withOpacity(0.4),
+            backgroundColor: ClientFlowPalette.accent.withOpacity(0.35),
             child: Text(
               client.name.isNotEmpty ? client.name[0].toUpperCase() : '?',
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: ClientFlowPalette.deep,
+                color: ClientFlowPalette.deepest,
               ),
             ),
           ),

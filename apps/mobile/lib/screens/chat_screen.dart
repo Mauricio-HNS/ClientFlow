@@ -145,9 +145,10 @@ class _MessageBubble extends StatelessWidget {
     final isSalon = message.isSalon;
     final alignment = isSalon ? Alignment.centerRight : Alignment.centerLeft;
     final color = isSalon
-        ? ClientFlowPalette.primary.withOpacity(0.85)
+        ? ClientFlowPalette.accent.withOpacity(0.9)
         : ClientFlowPalette.surface;
-    final textColor = isSalon ? ClientFlowPalette.deepest : ClientFlowPalette.deep;
+    final textColor =
+        isSalon ? ClientFlowPalette.deepest : ClientFlowPalette.deepest;
 
     return Align(
       alignment: alignment,

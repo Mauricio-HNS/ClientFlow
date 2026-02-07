@@ -141,45 +141,6 @@ Client? _findClient(List<Client> clients, String id) {
   return null;
 }
 
-class _HeroHeader extends StatelessWidget {
-  const _HeroHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [ClientFlowPalette.primary, ClientFlowPalette.accent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Seu fluxo de clientes, sem atrito.',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: ClientFlowPalette.deepest,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Agenda inteligente, historico completo e follow-ups automaticos.',
-            style: TextStyle(
-              color: ClientFlowPalette.deep,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _HomeHeader extends StatelessWidget {
   const _HomeHeader();
 
@@ -209,7 +170,7 @@ class _HomeHeader extends StatelessWidget {
         ),
         const CircleAvatar(
           radius: 22,
-          backgroundColor: ClientFlowPalette.primary,
+          backgroundColor: ClientFlowPalette.surface,
           child: Icon(Icons.person, color: ClientFlowPalette.deepest),
         ),
       ],
@@ -228,6 +189,13 @@ class _AppBrandCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         color: ClientFlowPalette.surface,
         border: Border.all(color: ClientFlowPalette.surfaceBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -235,7 +203,7 @@ class _AppBrandCard extends StatelessWidget {
             width: 54,
             height: 54,
             decoration: BoxDecoration(
-              color: ClientFlowPalette.primary,
+              color: ClientFlowPalette.accent,
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
@@ -249,7 +217,7 @@ class _AppBrandCard extends StatelessWidget {
               'ClientFlow\nGestao inteligente do seu salao',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: ClientFlowPalette.deep,
+                color: ClientFlowPalette.deepest,
               ),
             ),
           ),
@@ -269,10 +237,17 @@ class _BusinessPhotoCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         gradient: const LinearGradient(
-          colors: [ClientFlowPalette.accent, ClientFlowPalette.deep],
+          colors: [ClientFlowPalette.dark, ClientFlowPalette.deep],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Stack(
         children: [
@@ -294,7 +269,7 @@ class _BusinessPhotoCard extends StatelessWidget {
                 SizedBox(height: 4),
                 Text(
                   'Foto do comercio (personalizavel)',
-                  style: TextStyle(color: Color(0xFFD6EAF5)),
+                  style: TextStyle(color: ClientFlowPalette.primary),
                 ),
               ],
             ),
@@ -313,18 +288,18 @@ class _DemoBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: ClientFlowPalette.primary.withOpacity(0.18),
+        color: ClientFlowPalette.accent.withOpacity(0.15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ClientFlowPalette.primary.withOpacity(0.4)),
+        border: Border.all(color: ClientFlowPalette.accent.withOpacity(0.4)),
       ),
       child: const Row(
         children: [
-          Icon(Icons.auto_awesome, color: ClientFlowPalette.deep),
+          Icon(Icons.auto_awesome, color: ClientFlowPalette.primary),
           SizedBox(width: 8),
           Expanded(
             child: Text(
               'Modo demo ativo. Mostrando dados locais enquanto a API nao responde.',
-              style: TextStyle(color: ClientFlowPalette.deep),
+              style: TextStyle(color: ClientFlowPalette.deepest),
             ),
           ),
         ],

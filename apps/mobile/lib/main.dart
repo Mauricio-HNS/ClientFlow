@@ -22,15 +22,17 @@ class ClientFlowApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme(
-      brightness: Brightness.light,
-      primary: ClientFlowPalette.primary,
-      onPrimary: Colors.white,
-      secondary: ClientFlowPalette.accent,
-      onSecondary: ClientFlowPalette.deep,
+      brightness: Brightness.dark,
+      primary: ClientFlowPalette.accent,
+      onPrimary: ClientFlowPalette.deepest,
+      secondary: ClientFlowPalette.primary,
+      onSecondary: ClientFlowPalette.deepest,
       error: const Color(0xFFB91C1C),
       onError: Colors.white,
       surface: ClientFlowPalette.surface,
-      onSurface: ClientFlowPalette.deep,
+      onSurface: ClientFlowPalette.deepest,
+      background: ClientFlowPalette.background,
+      onBackground: ClientFlowPalette.deepest,
     );
 
     return MaterialApp(
@@ -40,18 +42,18 @@ class ClientFlowApp extends StatelessWidget {
         scaffoldBackgroundColor: ClientFlowPalette.background,
         useMaterial3: true,
         appBarTheme: const AppBarTheme(
-          backgroundColor: ClientFlowPalette.deep,
-          foregroundColor: Colors.white,
+          backgroundColor: ClientFlowPalette.background,
+          foregroundColor: ClientFlowPalette.deepest,
           centerTitle: false,
           elevation: 0,
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: ClientFlowPalette.surface,
-          indicatorColor: ClientFlowPalette.primary.withOpacity(0.35),
+          indicatorColor: ClientFlowPalette.accent.withOpacity(0.25),
           labelTextStyle: WidgetStateProperty.resolveWith(
             (states) => TextStyle(
               color: states.contains(WidgetState.selected)
-                  ? ClientFlowPalette.deep
+                  ? ClientFlowPalette.deepest
                   : ClientFlowPalette.muted,
               fontWeight: FontWeight.w600,
             ),
@@ -59,15 +61,33 @@ class ClientFlowApp extends StatelessWidget {
           iconTheme: WidgetStateProperty.resolveWith(
             (states) => IconThemeData(
               color: states.contains(WidgetState.selected)
-                  ? ClientFlowPalette.deep
+                  ? ClientFlowPalette.deepest
                   : ClientFlowPalette.muted,
             ),
           ),
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: ClientFlowPalette.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: ClientFlowPalette.surfaceBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: ClientFlowPalette.surfaceBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: ClientFlowPalette.accent, width: 1.4),
+          ),
+          labelStyle: const TextStyle(color: ClientFlowPalette.muted),
+          hintStyle: const TextStyle(color: ClientFlowPalette.muted),
+        ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: ClientFlowPalette.primary,
-            foregroundColor: ClientFlowPalette.deep,
+            backgroundColor: ClientFlowPalette.accent,
+            foregroundColor: ClientFlowPalette.deepest,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
@@ -75,7 +95,7 @@ class ClientFlowApp extends StatelessWidget {
           ),
         ),
         cardTheme: CardThemeData(
-          color: Colors.white,
+          color: ClientFlowPalette.surface,
           elevation: 0,
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(

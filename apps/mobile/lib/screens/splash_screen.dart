@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ClientFlowPalette.deepest,
+      backgroundColor: ClientFlowPalette.background,
       body: Center(
         child: FadeTransition(
           opacity: _fade,
@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
               Text(
                 'ClientFlow',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: ClientFlowPalette.deepest,
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                 ),
@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen>
               Text(
                 'Organize. Encante. Cresca.',
                 style: TextStyle(
-                  color: Color(0xFFB8C8C6),
+                  color: ClientFlowPalette.muted,
                 ),
               ),
             ],
@@ -83,11 +83,11 @@ class _LogoMark extends StatelessWidget {
       width: 72,
       height: 72,
       decoration: BoxDecoration(
-        color: ClientFlowPalette.primary,
+        color: ClientFlowPalette.accent,
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: ClientFlowPalette.accent.withOpacity(0.35),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),

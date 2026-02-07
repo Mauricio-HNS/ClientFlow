@@ -173,41 +173,41 @@ class _ClientCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: ClientFlowPalette.primary.withOpacity(0.35),
-                child: Text(
-                  client.name.isNotEmpty ? client.name[0].toUpperCase() : '?',
-                  style: const TextStyle(
-                    color: ClientFlowPalette.deep,
-                    fontWeight: FontWeight.bold,
-                  ),
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: ClientFlowPalette.accent.withOpacity(0.35),
+              child: Text(
+                client.name.isNotEmpty ? client.name[0].toUpperCase() : '?',
+                style: const TextStyle(
+                  color: ClientFlowPalette.deepest,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+            ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      client.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: ClientFlowPalette.deepest,
-                      ),
+                  Text(
+                    client.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: ClientFlowPalette.deepest,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      client.phone.isNotEmpty ? client.phone : 'Sem telefone',
-                      style: const TextStyle(color: ClientFlowPalette.muted),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    client.phone.isNotEmpty ? client.phone : 'Sem telefone',
+                    style: const TextStyle(color: ClientFlowPalette.muted),
+                  ),
+                ],
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: ClientFlowPalette.muted,
-              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: ClientFlowPalette.muted,
+            ),
             ],
           ),
         ),

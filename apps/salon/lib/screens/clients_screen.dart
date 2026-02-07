@@ -7,6 +7,7 @@ import '../screens/client_form_screen.dart';
 import '../models/client.dart';
 import '../screens/client_detail_screen.dart';
 import '../theme/clientflow_palette.dart';
+import 'blocked_screen.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key, required this.api, required this.hub});
@@ -76,6 +77,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
             }
 
             if (snapshot.hasError) {
+              final error = snapshot.error;
+              if (error is ApiException && error.status == 403) {
+                return BlockedScreen(message: error.message);
+              }
               return _ErrorState(
                 message: snapshot.error.toString(),
                 onRetry: _refresh,

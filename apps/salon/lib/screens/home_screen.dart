@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/clientflow_api.dart';
+import 'blocked_screen.dart';
 import '../demo/demo_data.dart';
 import '../theme/clientflow_palette.dart';
 import '../models/appointment.dart';
@@ -70,6 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             if (snapshot.hasError) {
+              final error = snapshot.error;
+              if (error is ApiException && error.status == 403) {
+                return BlockedScreen(message: error.message);
+              }
               return _ErrorState(
                 message: snapshot.error.toString(),
                 onRetry: () {

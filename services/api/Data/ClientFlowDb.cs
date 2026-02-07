@@ -29,6 +29,7 @@ public class ClientFlowDb : DbContext
             entity.Property(user => user.Name).IsRequired();
             entity.Property(user => user.Email).IsRequired();
             entity.Property(user => user.Role).IsRequired();
+            entity.Property(user => user.Status).HasDefaultValue(SalonStatus.Active);
             entity.Property(user => user.CreatedAt).HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
         });
 

@@ -33,7 +33,10 @@ class ClientFlowApi {
       headers: _headers(),
     );
     if (response.statusCode != 200) {
-      throw Exception('Erro ao carregar clientes (${response.statusCode}).');
+      throw ApiException(
+        response.statusCode,
+        'Erro ao carregar clientes (${response.statusCode}).',
+      );
     }
 
     final data = json.decode(response.body) as List<dynamic>;
@@ -60,7 +63,10 @@ class ClientFlowApi {
     );
 
     if (response.statusCode != 201) {
-      throw Exception('Erro ao criar cliente (${response.statusCode}).');
+      throw ApiException(
+        response.statusCode,
+        'Erro ao criar cliente (${response.statusCode}).',
+      );
     }
 
     final data = json.decode(response.body) as Map<String, dynamic>;
@@ -73,7 +79,10 @@ class ClientFlowApi {
       headers: _headers(),
     );
     if (response.statusCode != 200) {
-      throw Exception('Erro ao carregar agendamentos (${response.statusCode}).');
+      throw ApiException(
+        response.statusCode,
+        'Erro ao carregar agendamentos (${response.statusCode}).',
+      );
     }
 
     final data = json.decode(response.body) as List<dynamic>;
@@ -88,7 +97,10 @@ class ClientFlowApi {
       headers: _headers(),
     );
     if (response.statusCode != 200) {
-      throw Exception('Erro ao carregar conversas (${response.statusCode}).');
+      throw ApiException(
+        response.statusCode,
+        'Erro ao carregar conversas (${response.statusCode}).',
+      );
     }
 
     final data = json.decode(response.body) as List<dynamic>;
@@ -105,7 +117,10 @@ class ClientFlowApi {
     );
 
     if (response.statusCode != 201 && response.statusCode != 200) {
-      throw Exception('Erro ao criar conversa (${response.statusCode}).');
+      throw ApiException(
+        response.statusCode,
+        'Erro ao criar conversa (${response.statusCode}).',
+      );
     }
 
     final data = json.decode(response.body) as Map<String, dynamic>;
@@ -118,7 +133,10 @@ class ClientFlowApi {
       headers: _headers(),
     );
     if (response.statusCode != 200) {
-      throw Exception('Erro ao carregar mensagens (${response.statusCode}).');
+      throw ApiException(
+        response.statusCode,
+        'Erro ao carregar mensagens (${response.statusCode}).',
+      );
     }
 
     final data = json.decode(response.body) as List<dynamic>;
@@ -144,7 +162,10 @@ class ClientFlowApi {
     );
 
     if (response.statusCode != 201) {
-      throw Exception('Erro ao enviar mensagem (${response.statusCode}).');
+      throw ApiException(
+        response.statusCode,
+        'Erro ao enviar mensagem (${response.statusCode}).',
+      );
     }
 
     final data = json.decode(response.body) as Map<String, dynamic>;
@@ -157,6 +178,16 @@ class DashboardData {
 
   final List<Client> clients;
   final List<Appointment> appointments;
+}
+
+class ApiException implements Exception {
+  ApiException(this.status, this.message);
+
+  final int status;
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 class AuthResult {
@@ -180,7 +211,7 @@ extension AuthApi on ClientFlowApi {
       }),
     );
     if (response.statusCode != 200) {
-      throw Exception('Credenciais invalidas.');
+      throw ApiException(response.statusCode, 'Credenciais invalidas.');
     }
     final data = json.decode(response.body) as Map<String, dynamic>;
     final token = data['token'] as String;
@@ -210,7 +241,7 @@ extension AuthApi on ClientFlowApi {
     );
 
     if (response.statusCode != 201) {
-      throw Exception('Erro ao cadastrar usuario.');
+      throw ApiException(response.statusCode, 'Erro ao cadastrar usuario.');
     }
   }
 }

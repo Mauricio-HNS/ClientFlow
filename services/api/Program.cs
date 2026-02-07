@@ -72,6 +72,31 @@ if (!app.Environment.IsDevelopment())
 
 app.UseCors("dev");
 app.UseAuthentication();
+
+app.Use(async (context, next) =>
+{
+    if (context.User.Identity?.IsAuthenticated == true && context.User.IsInRole("salon"))
+    {
+        var userId = context.User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        if (Guid.TryParse(userId, out var parsedId))
+        {
+            var db = context.RequestServices.GetRequiredService<ClientFlowDb>();
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == parsedId);
+            if (user is not null && user.Status == SalonStatus.Suspended)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    message = "Conta suspensa. Regularize o pagamento para continuar usando."
+                });
+                return;
+            }
+        }
+    }
+
+    await next();
+});
+
 app.UseAuthorization();
 
 using (var scope = app.Services.CreateScope())
@@ -89,6 +114,7 @@ using (var scope = app.Services.CreateScope())
                 Email = "admin@clientflow.local",
                 Phone = "",
                 Role = "admin",
+                Status = SalonStatus.Active,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 CreatedAt = DateTime.UtcNow
             },
@@ -99,6 +125,8 @@ using (var scope = app.Services.CreateScope())
                 Email = "salao@clientflow.local",
                 Phone = "",
                 Role = "salon",
+                Status = SalonStatus.Active,
+                NextBillingAt = DateTime.UtcNow.AddDays(30),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("salao123"),
                 CreatedAt = DateTime.UtcNow
             },
@@ -109,6 +137,7 @@ using (var scope = app.Services.CreateScope())
                 Email = "cliente@clientflow.local",
                 Phone = "",
                 Role = "client",
+                Status = SalonStatus.Active,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("cliente123"),
                 CreatedAt = DateTime.UtcNow
             }
@@ -193,6 +222,7 @@ app.MapPost("/auth/register", async (RegisterInput input, ClientFlowDb db) =>
         Email = input.Email.Trim().ToLower(),
         Phone = input.Phone?.Trim() ?? "",
         Role = role,
+        Status = SalonStatus.Active,
         PasswordHash = BCrypt.Net.BCrypt.HashPassword(input.Password),
         CreatedAt = DateTime.UtcNow
     };
@@ -245,11 +275,97 @@ app.MapPost("/auth/login", async (LoginInput input, ClientFlowDb db) =>
     return Results.Ok(new
     {
         token = tokenHandler.WriteToken(token),
-        user = new { user.Id, user.Name, user.Email, user.Role }
+        user = new { user.Id, user.Name, user.Email, user.Role, user.Status }
     });
 });
 
 var api = app.MapGroup("/").RequireAuthorization();
+
+api.MapGet("/me", async (ClaimsPrincipal user, ClientFlowDb db) =>
+{
+    var id = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    if (!Guid.TryParse(id, out var parsedId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var account = await db.Users.FirstOrDefaultAsync(u => u.Id == parsedId);
+    if (account is null)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok(new { account.Id, account.Name, account.Email, account.Role, account.Status });
+});
+
+api.MapGet("/admin/salons", async (ClaimsPrincipal user, ClientFlowDb db) =>
+{
+    if (!user.IsInRole("admin"))
+    {
+        return Results.Forbid();
+    }
+
+    var salons = await db.Users
+        .Where(u => u.Role == "salon")
+        .Select(u => new
+        {
+            u.Id,
+            u.Name,
+            u.Email,
+            u.Status,
+            u.NextBillingAt,
+            u.PastDueSince,
+            u.SuspendedAt
+        })
+        .ToListAsync();
+
+    return Results.Ok(salons);
+});
+
+api.MapPost("/admin/salons/{id:guid}/status", async (
+    Guid id,
+    SalonStatusInput input,
+    ClaimsPrincipal user,
+    ClientFlowDb db
+) =>
+{
+    if (!user.IsInRole("admin"))
+    {
+        return Results.Forbid();
+    }
+
+    var salon = await db.Users.FirstOrDefaultAsync(u => u.Id == id && u.Role == "salon");
+    if (salon is null)
+    {
+        return Results.NotFound();
+    }
+
+    var status = input.Status?.Trim().ToUpper() ?? SalonStatus.Active;
+    if (status is not (SalonStatus.Active or SalonStatus.PastDue or SalonStatus.Suspended))
+    {
+        return Results.BadRequest(new { message = "Status invalido." });
+    }
+
+    salon.Status = status;
+    if (status == SalonStatus.PastDue && salon.PastDueSince is null)
+    {
+        salon.PastDueSince = DateTime.UtcNow;
+    }
+
+    if (status == SalonStatus.Suspended)
+    {
+        salon.SuspendedAt = DateTime.UtcNow;
+    }
+
+    if (status == SalonStatus.Active)
+    {
+        salon.PastDueSince = null;
+        salon.SuspendedAt = null;
+    }
+
+    await db.SaveChangesAsync();
+    return Results.Ok(new { salon.Id, salon.Status });
+});
 
 api.MapGet("/clients", async (ClientFlowDb db) =>
     await db.Clients.OrderBy(c => c.Name).ToListAsync());
@@ -494,6 +610,7 @@ app.Run();
 
 record RegisterInput(string Email, string Password, string? Name, string? Phone, string? Role);
 record LoginInput(string Email, string Password);
+record SalonStatusInput(string? Status);
 record ClientInput(string Name, string? Phone, string? Email, string? Notes);
 record AppointmentInput(Guid ClientId, string Title, DateTime StartAt, int DurationMinutes, string? Notes, string? Status);
 record ConversationInput(Guid ClientId);

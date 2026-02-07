@@ -38,7 +38,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _notesController.dispose();
     super.dispose();
   }
-}
 
   Future<void> _pickPhoto() async {
     final file = await _imagePicker.pickImage(source: ImageSource.gallery);

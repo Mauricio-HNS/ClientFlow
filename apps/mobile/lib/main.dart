@@ -85,13 +85,37 @@ class ClientFlowApp extends StatelessWidget {
           hintStyle: const TextStyle(color: ClientFlowPalette.muted),
         ),
         filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: ClientFlowPalette.accent,
-            foregroundColor: ClientFlowPalette.deepest,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+          style: ButtonStyle(
+            backgroundColor:
+                const WidgetStatePropertyAll(ClientFlowPalette.accent),
+            foregroundColor:
+                const WidgetStatePropertyAll(ClientFlowPalette.deepest),
+            padding: const WidgetStatePropertyAll(
+              EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             ),
+            shape: WidgetStatePropertyAll(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            shadowColor: WidgetStatePropertyAll(
+              ClientFlowPalette.glow.withOpacity(0.6),
+            ),
+            elevation: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.pressed)) {
+                return 2;
+              }
+              if (states.contains(WidgetState.hovered)) {
+                return 8;
+              }
+              return 6;
+            }),
+            overlayColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.pressed)) {
+                return ClientFlowPalette.glow.withOpacity(0.18);
+              }
+              return null;
+            }),
           ),
         ),
         cardTheme: CardThemeData(

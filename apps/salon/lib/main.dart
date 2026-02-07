@@ -6,6 +6,7 @@ import 'screens/clients_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
+import 'screens/alerts_screen.dart';
 import 'theme/clientflow_palette.dart';
 
 void main() {
@@ -207,6 +208,7 @@ class _HomeShellState extends State<HomeShell> {
     final pages = [
       HomeScreen(api: widget.api),
       ClientsScreen(api: widget.api, hub: _hub),
+      const AlertsScreen(),
     ];
 
     return Scaffold(
@@ -231,6 +233,11 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.people_outline),
             selectedIcon: Icon(Icons.people),
             label: 'Clientes',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.notifications_none),
+            selectedIcon: Icon(Icons.notifications),
+            label: 'Avisos',
           ),
         ],
       ),

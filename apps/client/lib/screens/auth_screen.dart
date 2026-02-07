@@ -151,8 +151,66 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: const TextStyle(color: ClientFlowPalette.primary),
               ),
             ),
+            const SizedBox(height: 20),
+            const _DemoCredentials(
+              title: 'Login de teste (Cliente)',
+              email: 'cliente@clientflow.local',
+              password: 'cliente123',
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DemoCredentials extends StatelessWidget {
+  const _DemoCredentials({
+    required this.title,
+    required this.email,
+    required this.password,
+  });
+
+  final String title;
+  final String email;
+  final String password;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: ClientFlowPalette.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ClientFlowPalette.surfaceBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: ClientFlowPalette.deepest,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Email: $email',
+            style: const TextStyle(color: ClientFlowPalette.muted),
+          ),
+          Text(
+            'Senha: $password',
+            style: const TextStyle(color: ClientFlowPalette.muted),
+          ),
+        ],
       ),
     );
   }

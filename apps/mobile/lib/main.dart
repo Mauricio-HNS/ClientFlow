@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'api/clientflow_api.dart';
+import 'api/chat_hub.dart';
 import 'screens/clients_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
@@ -130,12 +131,25 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
+  late final ChatHubClient _hub;
+
+  @override
+  void initState() {
+    super.initState();
+    _hub = ChatHubClient(baseUrl: clientFlowApiBaseUrl);
+  }
+
+  @override
+  void dispose() {
+    _hub.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final pages = [
       HomeScreen(api: widget.api),
-      ClientsScreen(api: widget.api),
+      ClientsScreen(api: widget.api, hub: _hub),
     ];
 
     return Scaffold(

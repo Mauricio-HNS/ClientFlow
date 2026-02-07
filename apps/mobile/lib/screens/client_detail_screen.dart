@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../api/chat_hub.dart';
+import '../api/clientflow_api.dart';
 import '../models/client.dart';
+import '../screens/chat_screen.dart';
 import '../theme/clientflow_palette.dart';
 
 class ClientDetailScreen extends StatelessWidget {
-  const ClientDetailScreen({super.key, required this.client});
+  const ClientDetailScreen({
+    super.key,
+    required this.client,
+    required this.api,
+    required this.hub,
+  });
 
   final Client client;
+  final ClientFlowApi api;
+  final ChatHubClient hub;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +61,21 @@ class ClientDetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final conversationId =
+                        await api.getOrCreateConversation(client.id);
+                    if (!context.mounted) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ChatScreen(
+                          api: api,
+                          hub: hub,
+                          conversationId: conversationId,
+                          clientName: client.name,
+                        ),
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.message_outlined),
                   label: const Text('Mensagem'),
                 ),

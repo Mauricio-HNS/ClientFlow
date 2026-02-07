@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../api/chat_hub.dart';
 import '../api/clientflow_api.dart';
 import '../demo/demo_data.dart';
 import '../screens/client_form_screen.dart';
@@ -8,9 +9,10 @@ import '../screens/client_detail_screen.dart';
 import '../theme/clientflow_palette.dart';
 
 class ClientsScreen extends StatefulWidget {
-  const ClientsScreen({super.key, required this.api});
+  const ClientsScreen({super.key, required this.api, required this.hub});
 
   final ClientFlowApi api;
+  final ChatHubClient hub;
 
   @override
   State<ClientsScreen> createState() => _ClientsScreenState();
@@ -98,11 +100,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       children: [
                         const _DemoBanner(),
                         const SizedBox(height: 12),
-                        _ClientCard(client: client),
+                        _ClientCard(
+                          client: client,
+                          api: widget.api,
+                          hub: widget.hub,
+                        ),
                       ],
                     );
                   }
-                  return _ClientCard(client: client);
+                  return _ClientCard(
+                    client: client,
+                    api: widget.api,
+                    hub: widget.hub,
+                  );
                 },
               ),
             );
@@ -132,9 +142,15 @@ class _ClientsScreenState extends State<ClientsScreen> {
 }
 
 class _ClientCard extends StatelessWidget {
-  const _ClientCard({required this.client});
+  const _ClientCard({
+    required this.client,
+    required this.api,
+    required this.hub,
+  });
 
   final Client client;
+  final ClientFlowApi api;
+  final ChatHubClient hub;
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +160,11 @@ class _ClientCard extends StatelessWidget {
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => ClientDetailScreen(client: client),
+              builder: (_) => ClientDetailScreen(
+                client: client,
+                api: api,
+                hub: hub,
+              ),
             ),
           );
         },

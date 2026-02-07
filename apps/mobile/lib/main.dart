@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'api/clientflow_api.dart';
 import 'screens/clients_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/clientflow_palette.dart';
 
 void main() {
@@ -81,9 +82,39 @@ class ClientFlowApp extends StatelessWidget {
           ),
         ),
       ),
-      home: HomeShell(
+      home: SplashGate(
         api: ClientFlowApi(baseUrl: clientFlowApiBaseUrl),
       ),
+    );
+  }
+}
+
+class SplashGate extends StatefulWidget {
+  const SplashGate({super.key, required this.api});
+
+  final ClientFlowApi api;
+
+  @override
+  State<SplashGate> createState() => _SplashGateState();
+}
+
+class _SplashGateState extends State<SplashGate> {
+  bool _ready = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_ready) {
+      return HomeShell(api: widget.api);
+    }
+
+    return SplashScreen(
+      onReady: () {
+        if (mounted) {
+          setState(() {
+            _ready = true;
+          });
+        }
+      },
     );
   }
 }

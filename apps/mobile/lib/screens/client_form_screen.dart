@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../api/clientflow_api.dart';
 import '../theme/clientflow_palette.dart';
@@ -23,6 +26,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _notesController = TextEditingController();
+  final _imagePicker = ImagePicker();
+  File? _selectedPhoto;
   bool _saving = false;
 
   @override
@@ -32,6 +37,14 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _emailController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickPhoto() async {
+    final file = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (file == null) return;
+    setState(() {
+      _selectedPhoto = File(file.path);
+    });
   }
 
   Future<void> _submit() async {
@@ -90,6 +103,42 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              Center(
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    CircleAvatar(
+                      radius: 44,
+                      backgroundColor: ClientFlowPalette.primary.withOpacity(0.3),
+                      backgroundImage:
+                          _selectedPhoto != null ? FileImage(_selectedPhoto!) : null,
+                      child: _selectedPhoto == null
+                          ? const Icon(Icons.person, size: 34, color: ClientFlowPalette.deep)
+                          : null,
+                    ),
+                    InkWell(
+                      onTap: _pickPhoto,
+                      borderRadius: BorderRadius.circular(22),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: ClientFlowPalette.deep,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Center(
+                child: Text(
+                  'Foto do cliente (opcional)',
+                  style: TextStyle(color: ClientFlowPalette.muted),
+                ),
+              ),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(

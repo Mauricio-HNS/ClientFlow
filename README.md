@@ -27,6 +27,11 @@ Use estas credenciais no login:
 - **Salao**: `salao@clientflow.local` / `salao123`
 - **Cliente**: `cliente@clientflow.local` / `cliente123`
 
+## Logins rapidos
+- Admin: `admin@clientflow.local` / `admin123`
+- Salao: `salao@clientflow.local` / `salao123`
+- Cliente: `cliente@clientflow.local` / `cliente123`
+
 ## Subir Postgres (Docker)
 ```bash
 docker rm -f clientflow-postgres

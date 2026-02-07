@@ -113,17 +113,40 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final message = _messages[index];
-                      return _MessageBubble(message: message);
-                    },
-                  ),
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF15181D),
+                    Color(0xFF1C2027),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final message = _messages[index];
+                        final showDate = index == 0 ||
+                            !_isSameDay(
+                              _messages[index - 1].createdAt,
+                              message.createdAt,
+                            );
+                        return Column(
+                          children: [
+                            if (showDate)
+                              _DatePill(date: message.createdAt),
+                            _MessageBubble(message: message),
+                          ],
+                        );
+                      },
+                    ),
+            ),
           ),
           _Composer(
             controller: _controller,
@@ -158,10 +181,22 @@ class _MessageBubble extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 280),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(16),
+            topRight: const Radius.circular(16),
+            bottomLeft: Radius.circular(isSalon ? 16 : 4),
+            bottomRight: Radius.circular(isSalon ? 4 : 16),
+          ),
           border: isSalon
               ? null
               : Border.all(color: ClientFlowPalette.surfaceBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment:
@@ -172,12 +207,22 @@ class _MessageBubble extends StatelessWidget {
               style: TextStyle(color: textColor),
             ),
             const SizedBox(height: 4),
-            Text(
-              _formatTime(message.createdAt),
-              style: TextStyle(
-                color: textColor.withOpacity(0.7),
-                fontSize: 11,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _formatTime(message.createdAt),
+                  style: TextStyle(
+                    color: textColor.withOpacity(0.7),
+                    fontSize: 11,
+                  ),
+                ),
+                if (isSalon) ...[
+                  const SizedBox(width: 6),
+                  Icon(Icons.done_all,
+                      size: 14, color: textColor.withOpacity(0.7)),
+                ],
+              ],
             ),
           ],
         ),
@@ -231,8 +276,44 @@ class _Composer extends StatelessWidget {
   }
 }
 
+class _DatePill extends StatelessWidget {
+  const _DatePill({required this.date});
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: ClientFlowPalette.surface.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _formatDate(date),
+        style: const TextStyle(
+          color: ClientFlowPalette.muted,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+}
+
 String _formatTime(DateTime dateTime) {
   final hour = dateTime.hour.toString().padLeft(2, '0');
   final minute = dateTime.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
+}
+
+String _formatDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  final year = date.year.toString();
+  return '$day/$month/$year';
+}
+
+bool _isSameDay(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
 }

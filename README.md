@@ -1,6 +1,11 @@
 # ClientFlow
 
-App modular para gerenciamento de clientes, agendamentos e relacionamento com tres perfis: **Cliente**, **Salao** e **Admin**.
+Ecossistema com 3 apps separados e um backend unico:
+- **Cliente (B2C)**: `apps/client`
+- **Salao (B2B)**: `apps/salon`
+- **Admin (SaaS)**: `apps/admin`
+
+> A pasta `apps/mobile` foi mantida como base historica.
 
 ## Visao Geral
 - **Cliente (B2C):** agenda servicos, recebe lembretes e conversa com o salao.
@@ -41,9 +46,22 @@ cd "/Users/mauriciohenrique/Projects/ClientFlow/services/api"
 dotnet run
 ```
 
-## Rodar o App Mobile
+## Rodar os Apps
+### Cliente
 ```bash
-cd "/Users/mauriciohenrique/Projects/ClientFlow/apps/mobile"
+cd "/Users/mauriciohenrique/Projects/ClientFlow/apps/client"
+flutter run --dart-define=CLIENTFLOW_API_URL=http://127.0.0.1:5078
+```
+
+### Salao
+```bash
+cd "/Users/mauriciohenrique/Projects/ClientFlow/apps/salon"
+flutter run --dart-define=CLIENTFLOW_API_URL=http://127.0.0.1:5078
+```
+
+### Admin
+```bash
+cd "/Users/mauriciohenrique/Projects/ClientFlow/apps/admin"
 flutter run --dart-define=CLIENTFLOW_API_URL=http://127.0.0.1:5078
 ```
 
@@ -65,4 +83,3 @@ flutter run --dart-define=CLIENTFLOW_API_URL=http://127.0.0.1:5078
 ## Documentacao
 - `docs/PRODUCT.md`
 - `docs/PITCH.md`
-

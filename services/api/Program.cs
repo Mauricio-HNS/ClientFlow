@@ -1,6 +1,7 @@
 using ClientFlow.Api.Data;
 using ClientFlow.Api.Hubs;
 using ClientFlow.Api.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

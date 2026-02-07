@@ -44,22 +44,28 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       if (_isLogin) {
-        await widget.api.login(
+        final result = await widget.api.login(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        if (result.role != 'admin') {
+          throw Exception('Use uma conta admin para acessar este painel.');
+        }
       } else {
         await widget.api.register(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           name: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
-          role: _role,
+          role: 'admin',
         );
-        await widget.api.login(
+        final result = await widget.api.login(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        if (result.role != 'admin') {
+          throw Exception('Use uma conta admin para acessar este painel.');
+        }
       }
 
       widget.onAuthenticated();
@@ -120,13 +126,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _RolePicker(
-                role: _role,
-                onChanged: (value) {
-                  setState(() {
-                    _role = value;
-                  });
-                },
+              const Text(
+                'Perfil: Admin',
+                style: TextStyle(color: ClientFlowPalette.muted),
               ),
               const SizedBox(height: 16),
             ],

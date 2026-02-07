@@ -6,6 +6,7 @@ import 'screens/clients_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
+import 'screens/salons_admin_screen.dart';
 import 'theme/clientflow_palette.dart';
 
 void main() {
@@ -205,6 +206,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final pages = [
+      SalonsAdminScreen(api: widget.api),
       HomeScreen(api: widget.api),
       ClientsScreen(api: widget.api, hub: _hub),
     ];
@@ -222,6 +224,11 @@ class _HomeShellState extends State<HomeShell> {
           });
         },
         destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.store_outlined),
+            selectedIcon: Icon(Icons.store),
+            label: 'Saloes',
+          ),
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),

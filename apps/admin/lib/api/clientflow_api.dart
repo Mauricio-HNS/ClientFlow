@@ -214,3 +214,34 @@ extension AuthApi on ClientFlowApi {
     }
   }
 }
+
+extension RawApi on ClientFlowApi {
+  Future<dynamic> rawGet(String path) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl$path'),
+      headers: _headers(),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(
+        response.statusCode,
+        'Erro ao carregar (${response.statusCode}).',
+      );
+    }
+    return json.decode(response.body);
+  }
+
+  Future<dynamic> rawPost(String path, Map<String, dynamic> body) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl$path'),
+      headers: _headers(),
+      body: json.encode(body),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(
+        response.statusCode,
+        'Erro ao salvar (${response.statusCode}).',
+      );
+    }
+    return json.decode(response.body);
+  }
+}

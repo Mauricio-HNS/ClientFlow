@@ -79,7 +79,7 @@ class ClientFlowApp extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: ClientFlowPalette.accent, width: 1.4),
+            borderSide: const BorderSide(color: ClientFlowPalette.accent, width: 1.6),
           ),
           labelStyle: const TextStyle(color: ClientFlowPalette.muted),
           hintStyle: const TextStyle(color: ClientFlowPalette.muted),
@@ -101,6 +101,7 @@ class ClientFlowApp extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+          shadowColor: ClientFlowPalette.glow.withOpacity(0.35),
         ),
       ),
       home: SplashGate(

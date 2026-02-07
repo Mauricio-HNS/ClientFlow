@@ -37,36 +37,6 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _emailController.dispose();
     _notesController.dispose();
     super.dispose();
-}
-
-class _InsetField extends StatelessWidget {
-  const _InsetField({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: ClientFlowPalette.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ClientFlowPalette.surfaceBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: ClientFlowPalette.glow.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: child,
-    );
   }
 }
 
@@ -238,6 +208,37 @@ class _InsetField extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _InsetField extends StatelessWidget {
+  const _InsetField({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: ClientFlowPalette.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ClientFlowPalette.surfaceBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: ClientFlowPalette.glow.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }

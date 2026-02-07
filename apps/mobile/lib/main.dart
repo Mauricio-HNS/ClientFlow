@@ -120,7 +120,7 @@ class ClientFlowApp extends StatelessWidget {
         ),
         cardTheme: CardThemeData(
           color: ClientFlowPalette.surface,
-          elevation: 0,
+          elevation: 6,
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),

@@ -87,7 +87,11 @@ class _HomeScreenState extends State<HomeScreen> {
             return ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const _HeroHeader(),
+                const _HomeHeader(),
+                const SizedBox(height: 16),
+                const _AppBrandCard(),
+                const SizedBox(height: 16),
+                const _BusinessPhotoCard(),
                 if (_isDemo) ...[
                   const SizedBox(height: 16),
                   const _DemoBanner(),
@@ -99,8 +103,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 24),
                 const _SectionTitle(
-                  title: 'Proximos compromissos',
-                  subtitle: 'Organize o dia em segundos',
+                  title: 'Seus agendamentos',
+                  subtitle: 'Proximos horarios confirmados',
                 ),
                 const SizedBox(height: 12),
                 if (upcoming.isEmpty)
@@ -168,6 +172,131 @@ class _HeroHeader extends StatelessWidget {
             'Agenda inteligente, historico completo e follow-ups automaticos.',
             style: TextStyle(
               color: ClientFlowPalette.deep,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'Ola, Mauricio',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: ClientFlowPalette.deepest,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Aqui estao seus proximos agendamentos',
+                style: TextStyle(color: ClientFlowPalette.muted),
+              ),
+            ],
+          ),
+        ),
+        const CircleAvatar(
+          radius: 22,
+          backgroundColor: ClientFlowPalette.primary,
+          child: Icon(Icons.person, color: ClientFlowPalette.deepest),
+        ),
+      ],
+    );
+  }
+}
+
+class _AppBrandCard extends StatelessWidget {
+  const _AppBrandCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: ClientFlowPalette.surface,
+        border: Border.all(color: ClientFlowPalette.surfaceBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: ClientFlowPalette.primary,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: ClientFlowPalette.deepest,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'ClientFlow\nGestao inteligente do seu salao',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: ClientFlowPalette.deep,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BusinessPhotoCard extends StatelessWidget {
+  const _BusinessPhotoCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 160,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          colors: [ClientFlowPalette.accent, ClientFlowPalette.deep],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 16,
+            bottom: 16,
+            right: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Salao Luma Beauty',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Foto do comercio (personalizavel)',
+                  style: TextStyle(color: Color(0xFFD6EAF5)),
+                ),
+              ],
             ),
           ),
         ],

@@ -1,22 +1,20 @@
 # ClientFlow
 
 Ecossistema com 3 apps separados e um backend unico:
-- **Cliente (B2C)**: `apps/client`
-- **Salao (B2B)**: `apps/salon`
-- **Admin (SaaS)**: `apps/admin`
-
-> A pasta `apps/mobile` foi mantida como base historica.
+- **Cliente (B2C):** `apps/client`
+- **Salao (B2B):** `apps/salon`
+- **Admin/Painel (SaaS):** `apps/admin`
 
 ## Visao Geral
 - **Cliente (B2C):** agenda servicos, recebe lembretes e conversa com o salao.
 - **Salao (B2B):** gerencia agenda, clientes, equipe e conversas.
-- **Admin (SaaS):** administra saloes, planos e metricas globais.
+- **Admin (SaaS):** administra saloes, planos e metricas globais, incluindo bloqueio por inadimplencia.
 
 ## Stack
 - **Mobile:** Flutter
 - **Backend:** ASP.NET Core + EF Core + SignalR
 - **Banco:** PostgreSQL
-- **Auth:** JWT + roles
+- **Auth:** JWT + roles (client, salon, admin)
 
 ## Fluxo do App do Cliente
 1. **Splash**
@@ -24,6 +22,7 @@ Ecossistema com 3 apps separados e um backend unico:
 3. **Home**
 
 ## Contas de teste (seed)
+Use estas credenciais no login:
 - **Admin**: `admin@clientflow.local` / `admin123`
 - **Salao**: `salao@clientflow.local` / `salao123`
 - **Cliente**: `cliente@clientflow.local` / `cliente123`
@@ -59,11 +58,16 @@ cd "/Users/mauriciohenrique/Projects/ClientFlow/apps/salon"
 flutter run --dart-define=CLIENTFLOW_API_URL=http://127.0.0.1:5078
 ```
 
-### Admin
+### Admin/Painel
 ```bash
 cd "/Users/mauriciohenrique/Projects/ClientFlow/apps/admin"
 flutter run --dart-define=CLIENTFLOW_API_URL=http://127.0.0.1:5078
 ```
+
+## Teste de bloqueio do salao
+1. Entre no **Admin** com `admin@clientflow.local / admin123`
+2. Va em **Saloes** e marque o salao como **Suspenso**
+3. No app do **Salao**, ele sera bloqueado automaticamente
 
 ## API (resumo)
 - `POST /auth/register` (email, password, name, phone, role)

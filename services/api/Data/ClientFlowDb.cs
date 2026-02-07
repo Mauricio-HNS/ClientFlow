@@ -14,6 +14,8 @@ public class ClientFlowDb : DbContext
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<Alert> Alerts => Set<Alert>();
+    public DbSet<SalonStatusLog> SalonStatusLogs => Set<SalonStatusLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -52,6 +54,20 @@ public class ClientFlowDb : DbContext
             entity.HasOne(appointment => appointment.Client)
                 .WithMany(client => client.Appointments)
                 .HasForeignKey(appointment => appointment.ClientId);
+        });
+
+        modelBuilder.Entity<Alert>(entity =>
+        {
+            entity.HasOne(alert => alert.User)
+                .WithMany()
+                .HasForeignKey(alert => alert.UserId);
+        });
+
+        modelBuilder.Entity<SalonStatusLog>(entity =>
+        {
+            entity.HasOne(log => log.Salon)
+                .WithMany()
+                .HasForeignKey(log => log.SalonId);
         });
     }
 }

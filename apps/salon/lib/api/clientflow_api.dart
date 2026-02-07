@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../models/alert_item.dart';
 import '../models/appointment.dart';
 import '../models/client.dart';
 import '../models/conversation_summary.dart';
@@ -106,6 +107,24 @@ class ClientFlowApi {
     final data = json.decode(response.body) as List<dynamic>;
     return data
         .map((item) => ConversationSummary.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<AlertItem>> fetchAlerts() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/salon/alerts'),
+      headers: _headers(),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(
+        response.statusCode,
+        'Erro ao carregar avisos (${response.statusCode}).',
+      );
+    }
+
+    final data = json.decode(response.body) as List<dynamic>;
+    return data
+        .map((item) => AlertItem.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 

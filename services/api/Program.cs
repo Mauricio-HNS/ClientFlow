@@ -5,6 +5,7 @@ using BCrypt.Net;
 using ClientFlow.Api.Data;
 using ClientFlow.Api.Hubs;
 using ClientFlow.Api.Models;
+using ClientFlow.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,8 @@ builder.Services.AddCors(options =>
             .AllowAnyOrigin();
     });
 });
+
+builder.Services.AddSingleton<INotifier, LogNotifier>();
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev_secret_change_me_please_12345";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "clientflow";
@@ -298,6 +301,28 @@ api.MapGet("/me", async (ClaimsPrincipal user, ClientFlowDb db) =>
     return Results.Ok(new { account.Id, account.Name, account.Email, account.Role, account.Status });
 });
 
+api.MapGet("/salon/alerts", async (ClaimsPrincipal user, ClientFlowDb db) =>
+{
+    if (!user.IsInRole("salon"))
+    {
+        return Results.Forbid();
+    }
+
+    var id = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    if (!Guid.TryParse(id, out var parsedId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var alerts = await db.Alerts
+        .Where(a => a.UserId == parsedId)
+        .OrderByDescending(a => a.CreatedAt)
+        .Select(a => new { a.Id, a.Title, a.Body, a.Tone, a.CreatedAt })
+        .ToListAsync();
+
+    return Results.Ok(alerts);
+});
+
 api.MapGet("/admin/salons", async (ClaimsPrincipal user, ClientFlowDb db) =>
 {
     if (!user.IsInRole("admin"))
@@ -322,11 +347,28 @@ api.MapGet("/admin/salons", async (ClaimsPrincipal user, ClientFlowDb db) =>
     return Results.Ok(salons);
 });
 
+api.MapGet("/admin/salons/{id:guid}/status/logs", async (Guid id, ClaimsPrincipal user, ClientFlowDb db) =>
+{
+    if (!user.IsInRole("admin"))
+    {
+        return Results.Forbid();
+    }
+
+    var logs = await db.SalonStatusLogs
+        .Where(l => l.SalonId == id)
+        .OrderByDescending(l => l.CreatedAt)
+        .Select(l => new { l.Id, l.FromStatus, l.ToStatus, l.CreatedAt })
+        .ToListAsync();
+
+    return Results.Ok(logs);
+});
+
 api.MapPost("/admin/salons/{id:guid}/status", async (
     Guid id,
     SalonStatusInput input,
     ClaimsPrincipal user,
-    ClientFlowDb db
+    ClientFlowDb db,
+    INotifier notifier
 ) =>
 {
     if (!user.IsInRole("admin"))
@@ -346,6 +388,7 @@ api.MapPost("/admin/salons/{id:guid}/status", async (
         return Results.BadRequest(new { message = "Status invalido." });
     }
 
+    var previousStatus = salon.Status;
     salon.Status = status;
     if (status == SalonStatus.PastDue && salon.PastDueSince is null)
     {
@@ -361,6 +404,43 @@ api.MapPost("/admin/salons/{id:guid}/status", async (
     {
         salon.PastDueSince = null;
         salon.SuspendedAt = null;
+    }
+
+    db.SalonStatusLogs.Add(new SalonStatusLog
+    {
+        Id = Guid.NewGuid(),
+        SalonId = salon.Id,
+        FromStatus = previousStatus,
+        ToStatus = status,
+        CreatedAt = DateTime.UtcNow
+    });
+
+    db.Alerts.Add(new Alert
+    {
+        Id = Guid.NewGuid(),
+        UserId = salon.Id,
+        Title = status == SalonStatus.Active ? "Conta reativada" :
+            status == SalonStatus.PastDue ? "Pagamento pendente" : "Conta suspensa",
+        Body = status == SalonStatus.Active
+            ? "Seu acesso foi reativado. Obrigado por manter o pagamento em dia."
+            : status == SalonStatus.PastDue
+                ? "Seu pagamento esta pendente. Regularize para evitar bloqueio."
+                : "Sua conta foi suspensa. Regularize o pagamento para voltar a usar.",
+        Tone = status == SalonStatus.Active ? "info" : status == SalonStatus.PastDue ? "warning" : "danger",
+        CreatedAt = DateTime.UtcNow
+    });
+
+    await notifier.SendEmailAsync(
+        salon.Email,
+        "Status da conta atualizado",
+        $"Seu status foi alterado para: {status}"
+    );
+    if (!string.IsNullOrWhiteSpace(salon.Phone))
+    {
+        await notifier.SendWhatsAppAsync(
+            salon.Phone,
+            $"ClientFlow: seu status foi alterado para {status}."
+        );
     }
 
     await db.SaveChangesAsync();

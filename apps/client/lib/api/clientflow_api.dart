@@ -186,6 +186,9 @@ extension AuthApi on ClientFlowApi {
     final token = data['token'] as String;
     final user = data['user'] as Map<String, dynamic>;
     final role = user['role'] as String? ?? 'client';
+    if (role != 'client') {
+      throw Exception('Use o app correto para este perfil.');
+    }
     setToken(token);
     return AuthResult(token: token, role: role);
   }
@@ -195,7 +198,6 @@ extension AuthApi on ClientFlowApi {
     required String password,
     required String name,
     required String phone,
-    required String role,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/register'),
@@ -205,7 +207,7 @@ extension AuthApi on ClientFlowApi {
         'password': password,
         'name': name,
         'phone': phone,
-        'role': role,
+        'role': 'client',
       }),
     );
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/clientflow_api.dart';
 import '../theme/clientflow_palette.dart';
+import 'salon_history_screen.dart';
 
 class SalonsAdminScreen extends StatefulWidget {
   const SalonsAdminScreen({super.key, required this.api});
@@ -61,6 +62,8 @@ class _SalonsAdminScreenState extends State<SalonsAdminScreen> {
             itemBuilder: (context, index) {
               final salon = salons[index] as Map<String, dynamic>;
               final status = (salon['status'] as String?) ?? 'ACTIVE';
+              final salonId = salon['id'] as String;
+              final salonName = salon['name'] as String? ?? 'Salao';
               return Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -68,7 +71,7 @@ class _SalonsAdminScreenState extends State<SalonsAdminScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        salon['name'] as String? ?? 'Salao',
+                        salonName,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: ClientFlowPalette.deepest,
@@ -86,17 +89,31 @@ class _SalonsAdminScreenState extends State<SalonsAdminScreen> {
                           _StatusChip(
                             label: 'Ativo',
                             selected: status == 'ACTIVE',
-                            onTap: () => _updateStatus(salon['id'], 'ACTIVE'),
+                            onTap: () => _updateStatus(salonId, 'ACTIVE'),
                           ),
                           _StatusChip(
                             label: 'Em atraso',
                             selected: status == 'PAST_DUE',
-                            onTap: () => _updateStatus(salon['id'], 'PAST_DUE'),
+                            onTap: () => _updateStatus(salonId, 'PAST_DUE'),
                           ),
                           _StatusChip(
                             label: 'Suspenso',
                             selected: status == 'SUSPENDED',
-                            onTap: () => _updateStatus(salon['id'], 'SUSPENDED'),
+                            onTap: () => _updateStatus(salonId, 'SUSPENDED'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => SalonHistoryScreen(
+                                    api: widget.api,
+                                    salonId: salonId,
+                                    salonName: salonName,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text('Historico'),
                           ),
                         ],
                       ),

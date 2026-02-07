@@ -208,7 +208,7 @@ class _HomeShellState extends State<HomeShell> {
     final pages = [
       HomeScreen(api: widget.api),
       ClientsScreen(api: widget.api, hub: _hub),
-      const AlertsScreen(),
+      AlertsScreen(api: widget.api),
     ];
 
     return Scaffold(

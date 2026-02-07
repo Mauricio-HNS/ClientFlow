@@ -1,8 +1,14 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using BCrypt.Net;
 using ClientFlow.Api.Data;
 using ClientFlow.Api.Hubs;
 using ClientFlow.Api.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +17,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<ClientFlowDb>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Default")
-                           ?? "Host=localhost;Port=5432;Database=clientflow;Username=postgres;Password=postgres";
+                           ?? "Host=localhost;Port=5433;Database=clientflow;Username=postgres;Password=postgres";
     options.UseNpgsql(connectionString);
 });
 
@@ -28,6 +34,30 @@ builder.Services.AddCors(options =>
     });
 });
 
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev_secret_change_me_please_12345";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "clientflow";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "clientflow";
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = signingKey,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -41,11 +71,49 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseCors("dev");
+app.UseAuthentication();
+app.UseAuthorization();
 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ClientFlowDb>();
     db.Database.EnsureCreated();
+
+    if (!db.Users.Any())
+    {
+        db.Users.AddRange(
+            new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Name = "Admin",
+                Email = "admin@clientflow.local",
+                Phone = "",
+                Role = "admin",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                CreatedAt = DateTime.UtcNow
+            },
+            new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Name = "Salao Demo",
+                Email = "salao@clientflow.local",
+                Phone = "",
+                Role = "salon",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("salao123"),
+                CreatedAt = DateTime.UtcNow
+            },
+            new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Name = "Cliente Demo",
+                Email = "cliente@clientflow.local",
+                Phone = "",
+                Role = "client",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("cliente123"),
+                CreatedAt = DateTime.UtcNow
+            }
+        );
+    }
 
     if (!db.Clients.Any())
     {
@@ -92,23 +160,107 @@ using (var scope = app.Services.CreateScope())
                 Status = "pendente"
             }
         );
-
-        db.SaveChanges();
     }
+
+    db.SaveChanges();
 }
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "clientflow-api" }));
 
-app.MapGet("/clients", async (ClientFlowDb db) =>
+app.MapPost("/auth/register", async (RegisterInput input, ClientFlowDb db) =>
+{
+    if (string.IsNullOrWhiteSpace(input.Email) || string.IsNullOrWhiteSpace(input.Password))
+    {
+        return Results.BadRequest(new { message = "Email e senha sao obrigatorios." });
+    }
+
+    var role = string.IsNullOrWhiteSpace(input.Role) ? "client" : input.Role.Trim().ToLower();
+    if (role is not ("client" or "salon" or "admin"))
+    {
+        return Results.BadRequest(new { message = "Role invalido." });
+    }
+
+    var exists = await db.Users.AnyAsync(u => u.Email == input.Email);
+    if (exists)
+    {
+        return Results.BadRequest(new { message = "Email ja cadastrado." });
+    }
+
+    var user = new AppUser
+    {
+        Id = Guid.NewGuid(),
+        Name = input.Name?.Trim() ?? "",
+        Email = input.Email.Trim().ToLower(),
+        Phone = input.Phone?.Trim() ?? "",
+        Role = role,
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword(input.Password),
+        CreatedAt = DateTime.UtcNow
+    };
+
+    db.Users.Add(user);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/users/{user.Id}", new
+    {
+        user.Id,
+        user.Name,
+        user.Email,
+        user.Role
+    });
+});
+
+app.MapPost("/auth/login", async (LoginInput input, ClientFlowDb db) =>
+{
+    if (string.IsNullOrWhiteSpace(input.Email) || string.IsNullOrWhiteSpace(input.Password))
+    {
+        return Results.BadRequest(new { message = "Email e senha sao obrigatorios." });
+    }
+
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Email == input.Email.Trim().ToLower());
+    if (user is null || !BCrypt.Net.BCrypt.Verify(input.Password, user.PasswordHash))
+    {
+        return Results.Unauthorized();
+    }
+
+    var claims = new List<Claim>
+    {
+        new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new(JwtRegisteredClaimNames.Email, user.Email),
+        new(ClaimTypes.Role, user.Role),
+        new("name", user.Name)
+    };
+
+    var tokenDescriptor = new SecurityTokenDescriptor
+    {
+        Subject = new ClaimsIdentity(claims),
+        Expires = DateTime.UtcNow.AddHours(12),
+        Issuer = jwtIssuer,
+        Audience = jwtAudience,
+        SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature)
+    };
+
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var token = tokenHandler.CreateToken(tokenDescriptor);
+
+    return Results.Ok(new
+    {
+        token = tokenHandler.WriteToken(token),
+        user = new { user.Id, user.Name, user.Email, user.Role }
+    });
+});
+
+var api = app.MapGroup("/").RequireAuthorization();
+
+api.MapGet("/clients", async (ClientFlowDb db) =>
     await db.Clients.OrderBy(c => c.Name).ToListAsync());
 
-app.MapGet("/clients/{id:guid}", async (Guid id, ClientFlowDb db) =>
+api.MapGet("/clients/{id:guid}", async (Guid id, ClientFlowDb db) =>
 {
     var client = await db.Clients.FirstOrDefaultAsync(item => item.Id == id);
     return client is null ? Results.NotFound() : Results.Ok(client);
 });
 
-app.MapPost("/clients", async (ClientInput input, ClientFlowDb db) =>
+api.MapPost("/clients", async (ClientInput input, ClientFlowDb db) =>
 {
     if (string.IsNullOrWhiteSpace(input.Name))
     {
@@ -130,7 +282,7 @@ app.MapPost("/clients", async (ClientInput input, ClientFlowDb db) =>
     return Results.Created($"/clients/{client.Id}", client);
 });
 
-app.MapPut("/clients/{id:guid}", async (Guid id, ClientInput input, ClientFlowDb db) =>
+api.MapPut("/clients/{id:guid}", async (Guid id, ClientInput input, ClientFlowDb db) =>
 {
     var client = await db.Clients.FirstOrDefaultAsync(item => item.Id == id);
     if (client is null)
@@ -147,7 +299,7 @@ app.MapPut("/clients/{id:guid}", async (Guid id, ClientInput input, ClientFlowDb
     return Results.Ok(client);
 });
 
-app.MapDelete("/clients/{id:guid}", async (Guid id, ClientFlowDb db) =>
+api.MapDelete("/clients/{id:guid}", async (Guid id, ClientFlowDb db) =>
 {
     var client = await db.Clients.FirstOrDefaultAsync(item => item.Id == id);
     if (client is null)
@@ -160,16 +312,16 @@ app.MapDelete("/clients/{id:guid}", async (Guid id, ClientFlowDb db) =>
     return Results.NoContent();
 });
 
-app.MapGet("/appointments", async (ClientFlowDb db) =>
+api.MapGet("/appointments", async (ClientFlowDb db) =>
     await db.Appointments.OrderBy(a => a.StartAt).ToListAsync());
 
-app.MapGet("/appointments/{id:guid}", async (Guid id, ClientFlowDb db) =>
+api.MapGet("/appointments/{id:guid}", async (Guid id, ClientFlowDb db) =>
 {
     var appointment = await db.Appointments.FirstOrDefaultAsync(item => item.Id == id);
     return appointment is null ? Results.NotFound() : Results.Ok(appointment);
 });
 
-app.MapPost("/appointments", async (AppointmentInput input, ClientFlowDb db) =>
+api.MapPost("/appointments", async (AppointmentInput input, ClientFlowDb db) =>
 {
     if (input.ClientId == Guid.Empty)
     {
@@ -203,7 +355,7 @@ app.MapPost("/appointments", async (AppointmentInput input, ClientFlowDb db) =>
     return Results.Created($"/appointments/{appointment.Id}", appointment);
 });
 
-app.MapPut("/appointments/{id:guid}", async (Guid id, AppointmentInput input, ClientFlowDb db) =>
+api.MapPut("/appointments/{id:guid}", async (Guid id, AppointmentInput input, ClientFlowDb db) =>
 {
     var appointment = await db.Appointments.FirstOrDefaultAsync(item => item.Id == id);
     if (appointment is null)
@@ -221,7 +373,7 @@ app.MapPut("/appointments/{id:guid}", async (Guid id, AppointmentInput input, Cl
     return Results.Ok(appointment);
 });
 
-app.MapDelete("/appointments/{id:guid}", async (Guid id, ClientFlowDb db) =>
+api.MapDelete("/appointments/{id:guid}", async (Guid id, ClientFlowDb db) =>
 {
     var appointment = await db.Appointments.FirstOrDefaultAsync(item => item.Id == id);
     if (appointment is null)
@@ -234,7 +386,7 @@ app.MapDelete("/appointments/{id:guid}", async (Guid id, ClientFlowDb db) =>
     return Results.NoContent();
 });
 
-app.MapGet("/conversations", async (ClientFlowDb db) =>
+api.MapGet("/conversations", async (ClientFlowDb db) =>
 {
     var response = await db.Conversations
         .Include(c => c.Client)
@@ -255,7 +407,7 @@ app.MapGet("/conversations", async (ClientFlowDb db) =>
     return Results.Ok(response);
 });
 
-app.MapPost("/conversations", async (ConversationInput input, ClientFlowDb db) =>
+api.MapPost("/conversations", async (ConversationInput input, ClientFlowDb db) =>
 {
     if (input.ClientId == Guid.Empty)
     {
@@ -281,7 +433,7 @@ app.MapPost("/conversations", async (ConversationInput input, ClientFlowDb db) =
     return Results.Created($"/conversations/{conversation.Id}", conversation);
 });
 
-app.MapGet("/conversations/{id:guid}/messages", async (Guid id, ClientFlowDb db) =>
+api.MapGet("/conversations/{id:guid}/messages", async (Guid id, ClientFlowDb db) =>
 {
     var messages = await db.Messages
         .Where(m => m.ConversationId == id)
@@ -291,7 +443,7 @@ app.MapGet("/conversations/{id:guid}/messages", async (Guid id, ClientFlowDb db)
     return Results.Ok(messages);
 });
 
-app.MapPost("/conversations/{id:guid}/messages", async (
+api.MapPost("/conversations/{id:guid}/messages", async (
     Guid id,
     MessageInput input,
     ClientFlowDb db,
@@ -340,6 +492,8 @@ app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
 
+record RegisterInput(string Email, string Password, string? Name, string? Phone, string? Role);
+record LoginInput(string Email, string Password);
 record ClientInput(string Name, string? Phone, string? Email, string? Notes);
 record AppointmentInput(Guid ClientId, string Title, DateTime StartAt, int DurationMinutes, string? Notes, string? Status);
 record ConversationInput(Guid ClientId);

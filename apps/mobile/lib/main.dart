@@ -154,6 +154,7 @@ class _SplashGateState extends State<SplashGate> {
     if (_ready) {
       if (!_authenticated) {
         return AuthScreen(
+          api: widget.api,
           onAuthenticated: () {
             setState(() {
               _authenticated = true;

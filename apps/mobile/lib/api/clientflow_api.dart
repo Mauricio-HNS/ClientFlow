@@ -11,9 +11,27 @@ class ClientFlowApi {
   ClientFlowApi({required this.baseUrl});
 
   final String baseUrl;
+  String? _token;
+
+  void setToken(String token) {
+    _token = token;
+  }
+
+  Map<String, String> _headers() {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+    };
+    if (_token != null && _token!.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $_token';
+    }
+    return headers;
+  }
 
   Future<List<Client>> fetchClients() async {
-    final response = await http.get(Uri.parse('$baseUrl/clients'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/clients'),
+      headers: _headers(),
+    );
     if (response.statusCode != 200) {
       throw Exception('Erro ao carregar clientes (${response.statusCode}).');
     }
@@ -32,7 +50,7 @@ class ClientFlowApi {
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/clients'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _headers(),
       body: json.encode({
         'name': name,
         'phone': phone ?? '',
@@ -50,7 +68,10 @@ class ClientFlowApi {
   }
 
   Future<List<Appointment>> fetchAppointments() async {
-    final response = await http.get(Uri.parse('$baseUrl/appointments'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/appointments'),
+      headers: _headers(),
+    );
     if (response.statusCode != 200) {
       throw Exception('Erro ao carregar agendamentos (${response.statusCode}).');
     }
@@ -62,7 +83,10 @@ class ClientFlowApi {
   }
 
   Future<List<ConversationSummary>> fetchConversations() async {
-    final response = await http.get(Uri.parse('$baseUrl/conversations'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/conversations'),
+      headers: _headers(),
+    );
     if (response.statusCode != 200) {
       throw Exception('Erro ao carregar conversas (${response.statusCode}).');
     }
@@ -76,7 +100,7 @@ class ClientFlowApi {
   Future<String> getOrCreateConversation(String clientId) async {
     final response = await http.post(
       Uri.parse('$baseUrl/conversations'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _headers(),
       body: json.encode({'clientId': clientId}),
     );
 
@@ -91,6 +115,7 @@ class ClientFlowApi {
   Future<List<Message>> fetchMessages(String conversationId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/conversations/$conversationId/messages'),
+      headers: _headers(),
     );
     if (response.statusCode != 200) {
       throw Exception('Erro ao carregar mensagens (${response.statusCode}).');
@@ -110,7 +135,7 @@ class ClientFlowApi {
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/conversations/$conversationId/messages'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _headers(),
       body: json.encode({
         'senderType': senderType,
         'senderName': senderName,
@@ -132,4 +157,60 @@ class DashboardData {
 
   final List<Client> clients;
   final List<Appointment> appointments;
+}
+
+class AuthResult {
+  AuthResult({required this.token, required this.role});
+
+  final String token;
+  final String role;
+}
+
+extension AuthApi on ClientFlowApi {
+  Future<AuthResult> login({
+    required String email,
+    required String password,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/login'),
+      headers: _headers(),
+      body: json.encode({
+        'email': email,
+        'password': password,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Credenciais invalidas.');
+    }
+    final data = json.decode(response.body) as Map<String, dynamic>;
+    final token = data['token'] as String;
+    final user = data['user'] as Map<String, dynamic>;
+    final role = user['role'] as String? ?? 'client';
+    setToken(token);
+    return AuthResult(token: token, role: role);
+  }
+
+  Future<void> register({
+    required String email,
+    required String password,
+    required String name,
+    required String phone,
+    required String role,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/register'),
+      headers: _headers(),
+      body: json.encode({
+        'email': email,
+        'password': password,
+        'name': name,
+        'phone': phone,
+        'role': role,
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Erro ao cadastrar usuario.');
+    }
+  }
 }

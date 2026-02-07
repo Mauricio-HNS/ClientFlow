@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../api/clientflow_api.dart';
 import '../theme/clientflow_palette.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key, required this.onAuthenticated});
+  const AuthScreen({super.key, required this.api, required this.onAuthenticated});
 
+  final ClientFlowApi api;
   final VoidCallback onAuthenticated;
 
   @override
@@ -13,11 +15,66 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool _isLogin = true;
+  bool _loading = false;
+  String _role = 'client';
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
 
   void _toggleMode() {
     setState(() {
       _isLogin = !_isLogin;
     });
+  }
+
+  Future<void> _submit() async {
+    setState(() {
+      _loading = true;
+    });
+
+    try {
+      if (_isLogin) {
+        await widget.api.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+      } else {
+        await widget.api.register(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          role: _role,
+        );
+        await widget.api.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+      }
+
+      widget.onAuthenticated();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -41,6 +98,7 @@ class _AuthScreenState extends State<AuthScreen> {
             const SizedBox(height: 16),
             _InsetField(
               child: TextFormField(
+                controller: _emailController,
                 decoration: const InputDecoration(labelText: 'E-mail'),
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -49,28 +107,44 @@ class _AuthScreenState extends State<AuthScreen> {
             if (!_isLogin) ...[
               _InsetField(
                 child: TextFormField(
+                  controller: _nameController,
                   decoration: const InputDecoration(labelText: 'Nome completo'),
                 ),
               ),
               const SizedBox(height: 16),
               _InsetField(
                 child: TextFormField(
+                  controller: _phoneController,
                   decoration: const InputDecoration(labelText: 'Telefone'),
                   keyboardType: TextInputType.phone,
                 ),
               ),
               const SizedBox(height: 16),
+              _RolePicker(
+                role: _role,
+                onChanged: (value) {
+                  setState(() {
+                    _role = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
             ],
             _InsetField(
               child: TextFormField(
+                controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Senha'),
                 obscureText: true,
               ),
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: widget.onAuthenticated,
-              child: Text(_isLogin ? 'Entrar' : 'Cadastrar'),
+              onPressed: _loading ? null : _submit,
+              child: Text(_loading
+                  ? 'Aguarde...'
+                  : _isLogin
+                      ? 'Entrar'
+                      : 'Cadastrar'),
             ),
             const SizedBox(height: 16),
             TextButton(
@@ -128,6 +202,98 @@ class _LogoBlock extends StatelessWidget {
           style: TextStyle(color: ClientFlowPalette.muted),
         ),
       ],
+    );
+  }
+}
+
+class _RolePicker extends StatelessWidget {
+  const _RolePicker({required this.role, required this.onChanged});
+
+  final String role;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Perfil',
+          style: TextStyle(color: ClientFlowPalette.muted),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          children: [
+            _RoleChip(
+              label: 'Cliente',
+              value: 'client',
+              selected: role == 'client',
+              onTap: () => onChanged('client'),
+            ),
+            _RoleChip(
+              label: 'Salao',
+              value: 'salon',
+              selected: role == 'salon',
+              onTap: () => onChanged('salon'),
+            ),
+            _RoleChip(
+              label: 'Admin',
+              value: 'admin',
+              selected: role == 'admin',
+              onTap: () => onChanged('admin'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _RoleChip extends StatelessWidget {
+  const _RoleChip({
+    required this.label,
+    required this.value,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final String value;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? ClientFlowPalette.accent : ClientFlowPalette.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: ClientFlowPalette.surfaceBorder),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: ClientFlowPalette.glow.withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected
+                ? ClientFlowPalette.deepest
+                : ClientFlowPalette.muted,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }
